@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CryptoJS from 'crypto-js';
 
 const Encryption = () => {
@@ -6,6 +6,45 @@ const Encryption = () => {
     const [output, setOutput] = useState('');
     const [password, setPassword] = useState('');
     const [mode, setMode] = useState<'encrypt' | 'decrypt'>('encrypt');
+    const [isInitialized, setIsInitialized] = useState(false);
+
+    // Read URL parameters on component mount
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const urlMode = params.get('mode');
+        const urlText = params.get('text');
+
+        if (urlMode && (urlMode === 'encrypt' || urlMode === 'decrypt')) {
+            setMode(urlMode as 'encrypt' | 'decrypt');
+        }
+        if (urlText) {
+            setInput(decodeURIComponent(urlText));
+        }
+        setIsInitialized(true);
+    }, []);
+
+    // Update URL only when user manually changes mode or input
+    const updateUrlParams = (newMode: string, newInput: string) => {
+        if (!isInitialized) return;
+        const params = new URLSearchParams();
+        if (newMode) params.set('mode', newMode);
+        if (newInput) params.set('text', encodeURIComponent(newInput));
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        window.history.replaceState({}, '', newUrl);
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const newInput = e.target.value;
+        setInput(newInput);
+        updateUrlParams(mode, newInput);
+    };
+
+    const handleModeChange = (newMode: 'encrypt' | 'decrypt') => {
+        setMode(newMode);
+        setInput('');
+        setOutput('');
+        updateUrlParams(newMode, '');
+    };
 
     const handleEncrypt = () => {
         if (!input || !password) {
@@ -35,12 +74,6 @@ const Encryption = () => {
         } catch (error) {
             setOutput('Decryption failed. Please check your password and input.');
         }
-    };
-
-    const handleModeChange = (newMode: 'encrypt' | 'decrypt') => {
-        setMode(newMode);
-        setInput('');
-        setOutput('');
     };
 
     return (
@@ -77,7 +110,7 @@ const Encryption = () => {
                     {mode === 'encrypt' ? 'Text to encrypt:' : 'Encrypted text:'}
                     <textarea
                         value={input}
-                        onChange={(e) => setInput(e.target.value)}
+                        onChange={handleInputChange}
                         placeholder={mode === 'encrypt' ? 'Enter text to encrypt' : 'Enter encrypted text'}
                     />
                 </label>
