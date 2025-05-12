@@ -28,7 +28,7 @@ const Encryption = () => {
         if (!isInitialized) return;
         const params = new URLSearchParams();
         if (newMode) params.set('mode', newMode);
-        if (newInput) params.set('text', encodeURIComponent(newInput));
+        if (newInput) params.set('text', newInput);
         const newUrl = `${window.location.pathname}?${params.toString()}`;
         window.history.replaceState({}, '', newUrl);
     };
