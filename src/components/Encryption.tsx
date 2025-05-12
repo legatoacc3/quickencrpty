@@ -18,7 +18,7 @@ const Encryption = () => {
             setMode(urlMode as 'encrypt' | 'decrypt');
         }
         if (urlText) {
-            setInput(decodeURIComponent(urlText));
+            setInput(urlText);
         }
         setIsInitialized(true);
     }, []);
